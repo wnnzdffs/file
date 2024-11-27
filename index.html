@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .captcha-container {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      padding: 48px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #65676b;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .captcha-wrapper {
+      background-color: #f8f9fa;
+      border-radius: 12px;
+      padding: 8px;
+      margin-bottom: 32px;
+    }
+
+    .captcha-box {
+      background-color: white;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      position: relative;
+      height: 130px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    #captchaText {
+      font-family: Arial, sans-serif;
+      font-size: 76px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      text-align: center;
+      position: relative;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      color: #1a1a1a;
+      transform: scaleY(1.2);
+    }
+
+    .captcha-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .strike-through {
+      position: absolute;
+      background: white;
+      width: 140%;
+      height: 4px;
+      left: -20%;
+      transform-origin: center;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .noise-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAElBMVEX///////////////8DBAb/AAD////j2Em0AAAABXRSTlMoKCgoBLi8/NIAAAAkSURBVDjLY2AYBaNgFIyCUTAKRsEoGAWjYBSMglEwCkbBKKgJAACfEAEBuhYqnAAAAABJRU5ErkJggg==');
+    }
+
+    .help-text {
+      font-size: 15px;
+      color: #65676b;
+      padding: 0 8px;
+    }
+
+    .help-link {
+      color: #1877f2;
+      text-decoration: none;
+      cursor: pointer;
+      margin: 0 4px;
+      font-weight: 500;
+    }
+
+    .help-link:hover {
+      text-decoration: underline;
+    }
+
+    .input-wrapper {
+      margin: 32px 0;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 16px 20px;
+      border: 1.5px solid #e4e6eb;
+      border-radius: 12px;
+      font-size: 17px;
+      transition: all 0.2s ease;
+      background-color: #fff;
+      color: #1a1a1a;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #1877f2;
+      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
+    }
+
+    .input-field::placeholder {
+      color: #65676b;
+    }
+
+    .submit-button {
+      width: 100%;
+      padding: 16px;
+      background-color: #1877f2;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-button:hover {
+      background-color: #166fe5;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(24, 119, 242, 0.15);
+    }
+
+    .submit-button:active {
+      transform: translateY(0);
+    }
+
+    .submit-button.disabled {
+      background-color: #e4e6eb;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    .submit-button.loading .spinner {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .char {
+      display: inline-block;
+      transform-origin: center;
+      position: relative;
+      margin: 0 2px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .captcha-container {
+        padding: 24px;
+      }
+      
+      #captchaText {
+        font-size: 52px;
+      }
+      
+      .captcha-box {
+        height: 100px;
+        padding: 16px;
+      }
+      
+      .title {
+        font-size: 20px;
+      }
+      
+      .subtitle {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="captcha-container">
+    <h2 class="title">Enter the characters you see</h2>
+    <p class="subtitle">We just need to make sure that there's a real human behind this login attempt.<br>Remember, use capital letters if you see them.</p>
+    
+    <div class="captcha-wrapper">
+      <div class="captcha-box">
+        <div id="captchaText"></div>
+        <div class="captcha-overlay">
+          <div class="strike-through"></div>
+          <div class="strike-through"></div>
+          <div class="strike-through"></div>
+          <div class="strike-through"></div>
+          <div class="noise-overlay"></div>
+        </div>
+      </div>
+      
+      <div class="help-text">
+        Can't read this?
+        <span class="help-link" onclick="generateCaptcha()">Generate new</span>
+        or
+        <span class="help-link">play audio</span>
+      </div>
+    </div>
+    
+    <div class="input-wrapper">
+      <input type="text" class="input-field" placeholder="Enter characters" autocomplete="off">
+    </div>
+
+    <button id="submitButton" class="submit-button">
+      Continue
+      <div class="spinner"></div>
+    </button>
+  </div>
+
+  <script>
+    function generateCaptcha() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let captcha = '';
+      for(let i = 0; i < 7; i++) {
+        captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      const captchaElement = document.getElementById('captchaText');
+      captchaElement.innerHTML = '';
+      
+      captcha.split('').forEach(char => {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = char;
+        
+        const rotation = Math.random() * 30 - 15;
+        const skewX = Math.random() * 20 - 10;
+        const skewY = Math.random() * 20 - 10;
+        const scaleX = 0.9 + Math.random() * 0.4;
+        const scaleY = 0.9 + Math.random() * 0.4;
+        
+        span.style.transform = `
+          rotate(${rotation}deg)
+          skew(${skewX}deg, ${skewY}deg)
+          scale(${scaleX}, ${scaleY})
+          translateY(${Math.random() * 10 - 5}px)
+        `;
+        
+        captchaElement.appendChild(span);
+      });
+
+      const strikes = document.querySelectorAll('.strike-through');
+      strikes.forEach((strike, index) => {
+        const yPos = 15 + (index * 23);
+        const rotation = Math.random() * 25 - 12;
+        strike.style.top = `${yPos}%`;
+        strike.style.transform = `
+          rotate(${rotation}deg)
+          translateY(${Math.random() * 15 - 7}px)
+        `;
+      });
+    }
+
+    const submitButton = document.querySelector('#submitButton');
+    
+    submitButton.addEventListener('click', function() {
+      const input = document.querySelector('.input-field').value;
+      const captcha = Array.from(document.querySelectorAll('.char'))
+                          .map(span => span.textContent)
+                          .join('');
+      
+      if(input === captcha) {
+        submitButton.classList.add('disabled', 'loading');
+        submitButton.disabled = true;
+        
+        setTimeout(() => {
+          submitButton.classList.remove('disabled', 'loading');
+          submitButton.disabled = false;
+          document.querySelector('.input-field').value = '';
+          generateCaptcha();
+          window.open('https://www.example.com', '_blank');
+        }, 1000);
+      } else {
+        alert('Incorrect CAPTCHA. Please try again.');
+        generateCaptcha();
+        document.querySelector('.input-field').value = '';
+      }
+    });
+
+    document.querySelector('.input-field').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        submitButton.click();
+      }
+    });
+
+    generateCaptcha();
+  </script>
+</body>
+</html>
